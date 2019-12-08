@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    
+    <p:dialog header="Edição" widgetVar="dlg" resizable="false"
+              modal="true" width="50%" height="100%">
+        
+        <h:form id="formEdicao" prependId="false">
+            <p:growl id="growl"/>
+            <p:tabView id="tab">
+                
+                <p:tab title="Time">
+                    <div align="center">
+                        <p:panelGrid columns="2">
+                            
+                            <p:outputLabel value="ID"/>
+                            <p:inputText value="#{controleTime.objeto.id}" readonly="true" size="5"/>
+                            
+                            <p:outputLabel value="Nome" for="txtNome"/>
+                            <p:inputText id="txtNome" value="#{controleTime.objeto.nome}"
+                                         size="50" maxlength="50" placeholder="Nome">
+                                <p:ajax listener="#{controleTime.carregaNomeTime()}"
+                                update="formJogador" event="keyup"/>
+                            </p:inputText>
+                            
+                            <p:outputLabel value="Fundação"/>
+                            <p:inputText value="#{controleTime.objeto.anoFundacao}" size="4" maxlength="4" placeholder="xxxx"/>
+                            
+                            <p:outputLabel value="Cidade" for="selectCidade"/>
+                            <p:selectOneMenu id="selectCidade" value="#{controleTime.objeto.cidade}"
+                                             filter="true" filterMatchMode="startsWith">
+                                <f:selectItem itemLabel="Selecione um registro"
+                                              noSelectionOption="true"/>
+                                <f:converter binding="#{converterCidade}"/>
+                                <f:selectItems value="#{controleTime.daoCidade.listaTodos}"
+                                               var="cid" itemLabel="#{cid.nome}"/>
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                    </div>
+                </p:tab>
+                
+                <p:tab title="Jogadores">
+                    <p:dataTable value="#{controleTime.objeto.jogadores}"
+                                 var="jogador" rowIndexVar="idxJogador"
+                                 id="listaJogadores">
+                        <f:facet name="header">
+                            <p:commandButton value="Novo Jogador"
+                                             actionListener="#{controleTime.novoJogador()}"
+                                             update=":formJogador" icon="pi pi-plus"
+                                             process="@this"
+                                             oncomplete="PF('dlgJogador').show();"/>
+                        </f:facet>
+                        <p:column headerText="ID">
+                            <p:outputLabel  value="#{jogador.id}"/>
+                        </p:column>
+                        <p:column headerText="Nome">
+                            <p:outputLabel  value="#{jogador.nome}"/>
+                        </p:column>  
+                        <p:column headerText="Posição">
+                            <p:outputLabel  value="#{jogador.posicao.nome}"/>
+                        </p:column>
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="pi pi-pencil"
+                                                 actionListener="#{controleTime.alterarJogador(idxJogador)}"
+                                                 update=":formJogador" process="@this"
+                                                 oncomplete="PF('dlgJogador').show();"/>
+                                <p:commandButton icon="pi pi-trash"
+                                                 actionListener="#{controleTime.removerJogador(idxJogador)}"             
+                                                 process="@this"
+                                                 update="tab:listaJogadores growl"
+                                                 onclick="if (!confirm('Confirma a exclusão?'))
+                                                             return false"/>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                </p:tab>
+                
+            </p:tabView>
+
+            <p:panel>
+                <div align="center">
+                    <p:commandButton value="Salvar"
+                                     actionListener="#{controleTime.salvar()}"
+                                     icon="pi pi-save"
+                                     update="formEdicao formListagem"
+                                     process="@form"
+                                     oncomplete="if(!args.validationFailed){PF('dlg').hide();}"/>
+                </div>
+            </p:panel>
+        </h:form>
+
+    </p:dialog>
+    
+    <p:dialog header="Edição de Jogadores"
+              widgetVar="dlgJogador" resizable="false" modal="true">
+        <h:form id="formJogador">
+            <p:growl/>
+            <p:panelGrid columns="2">
+                <f:facet name="footer">
+                    <div align="center">
+                        <p:commandButton value="Salvar"
+                                         actionListener="#{controleTime.salvarJogador()}"
+                                         update="@form tab:listaJogadores growl"
+                                         process="@form"
+                                         oncomplete="if(!args.validationFailed){PF('dlgJogador').hide();}"/>
+                    </div>
+                </f:facet>
+                
+                <p:outputLabel value="ID"/>
+                <p:inputText value="#{controleTime.jogador.id}" readonly="true" size="5"/>
+                
+                <p:outputLabel value="Nome" for="txtNome"/>
+                <p:inputText id="txtNome" value="#{controleTime.jogador.nome}"
+                             size="50" maxlength="50" placeholder="Nome"/>
+                
+                <p:outputLabel value="Posição" for="selectPosicao"/>
+                <p:selectOneMenu id="selectPosicao" value="#{controleTime.jogador.posicao}"
+                                 filter="true" filterMatchMode="startsWith">
+                    <f:selectItem itemLabel="Selecione um registro"
+                                  noSelectionOption="true"/>
+                    <f:converter binding="#{converterPosicao}"/>
+                    <f:selectItems value="#{controleJogador.daoPosicao.listaTodos}"
+                                   var="pos" itemLabel="#{pos.nome}"/>
+                </p:selectOneMenu>
+                
+                <p:outputLabel value="Time" for="selectTime"/>
+                <p:outputLabel id="selectTime" value="#{controleTime.objeto.nome}"/>
+                
+            </p:panelGrid>
+            
+        </h:form>     
+        
+        <ui:include src="/templates/ajaxstatus.xhtml"/>
+    
+    </p:dialog>
+
+</html>
+
